@@ -28,4 +28,101 @@
             padding: 20px;
             background: white;
             border-radius: 12px;
-            box-shadow
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 15px;
+            background: #eef3ff;
+            border-left: 4px solid #4a6cf7;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            margin: 40px 0;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">燃費計算ツール</div>
+
+    <div class="container">
+        <label>走行距離（km）</label>
+        <input type="number" id="distance" placeholder="例：120">
+
+        <label>燃費（km/L）</label>
+        <input type="number" id="fuelEconomy" placeholder="例：15">
+
+        <label>ガソリン価格（円/L）</label>
+        <input type="number" id="gasPrice" placeholder="例：170">
+
+        <button onclick="calc()">計算する</button>
+
+        <div id="result" class="result" style="display:none;"></div>
+    </div>
+
+    <footer>
+        © 2025 Nenpi Calculator
+    </footer>
+
+    <script>
+        function calc() {
+            const d = parseFloat(document.getElementById("distance").value);
+            const e = parseFloat(document.getElementById("fuelEconomy").value);
+            const p = parseFloat(document.getElementById("gasPrice").value);
+
+            if (isNaN(d) || isNaN(e) || isNaN(p) || d <= 0 || e <= 0 || p <= 0) {
+                alert("すべての値を正しく入力してください。");
+                return;
+            }
+
+            const fuel = d / e;
+            const cost = Math.round(fuel * p);
+
+            document.getElementById("result").style.display = "block";
+            document.getElementById("result").innerHTML =
+                `必要なガソリン量：${fuel.toFixed(2)} L<br>ガソリン代：<strong>${cost} 円</strong>`;
+        }
+    </script>
+
+</body>
+</html>
