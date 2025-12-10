@@ -29,6 +29,52 @@ body{
     color:var(--text);
     transition:background .3s,color .3s;
 }
+
+/* dark mode */
+body.dark{
+    background: var(--bg-dark);
+    color: var(--text-dark);
+}
+body.dark .container{
+    background:var(--card-bg-dark);
+}
+body.dark .header{
+    background:var(--main-dark);
+    color:#ffffff; /* ヘッダー文字を明るく */
+}
+body.dark input[type="number"],
+body.dark input[type="text"]{
+    background: #2b2d34;
+    color: #ffffff; /* 入力文字を明るく */
+    border-color:#555;
+}
+body.dark label{
+    color:#dcdcdc; /* ラベル文字を明るく */
+}
+body.dark .result{
+    background:#39405a;
+    color:#f0f0ff; /* 結果文字を明るく */
+    border-left-color:#9cb3ff;
+}
+body.dark .historyItem{
+    background:#383b46;
+    border-left-color:#9cb3ff;
+    color:#e8e8e8;
+    box-shadow:none;
+}
+body.dark #historyBox{
+    background:#2f323c;
+}
+body.dark .copy-btn.primary,
+body.dark .copy-btn.secondary{
+    color:#ffffff; /* コピー用ボタン文字を明るく */
+}
+body.dark .theme-toggle{
+    color:#ffffff;
+    background: rgba(255,255,255,0.18);
+}
+
+    
 .header{
     background:var(--main);
     padding:22px;
