@@ -51,21 +51,26 @@
             color: #555;
         }
 
-        input {
-           width: 100%;
-    padding: 14px 12px;
-    margin-top: 6px;
-    border: 1px solid #dcdfea;
-    border-radius: var(--radius);
-    font-size: 17px;
-    transition: 0.25s ease;
-    box-sizing: border-box;
+        input[type="number"] {
+            width: 100%;
+            padding: 14px 12px;
+            margin-top: 6px;
+            border: 1px solid #dcdfea;
+            border-radius: var(--radius);
+            font-size: 17px;
+            transition: 0.25s ease;
+            box-sizing: border-box;
         }
 
         input:focus {
             border-color: var(--main);
             box-shadow: 0 0 0 3px rgba(74,108,247,0.15);
             outline: none;
+        }
+
+        .checkbox-area {
+            margin-top: 20px;
+            font-size: 16px;
         }
 
         button {
@@ -106,16 +111,6 @@
             font-size: 14px;
             letter-spacing: 0.5px;
         }
-
-        @media (max-width: 480px) {
-            .container {
-                margin: 20px;
-                padding: 22px;
-            }
-            .header {
-                font-size: 22px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -126,11 +121,18 @@
         <label>走行距離（km）</label>
         <input type="number" id="distance" placeholder="例：120">
 
+        <div class="checkbox-area">
+            <input type="checkbox" id="roundTrip"> 往復する（距離×2）
+        </div>
+
         <label>燃費（km/L）</label>
         <input type="number" id="fuelEconomy" placeholder="例：15">
 
         <label>ガソリン価格（円/L）</label>
         <input type="number" id="gasPrice" placeholder="例：170">
+
+        <label>割り勘人数（任意）</label>
+        <input type="number" id="people" placeholder="例：3">
 
         <button onclick="calc()">計算する</button>
 
@@ -142,22 +144,61 @@
     </footer>
 
     <script>
+        // --------------------
+        // 前回入力の読み込み
+        // --------------------
+        window.onload = function () {
+            const keys = ["distance", "fuelEconomy", "gasPrice", "people"];
+            keys.forEach(key => {
+                if (localStorage.getItem(key) !== null) {
+                    document.getElementById(key).value = localStorage.getItem(key);
+                }
+            });
+
+            if (localStorage.getItem("roundTrip") === "true") {
+                document.getElementById("roundTrip").checked = true;
+            }
+        };
+
         function calc() {
-            const d = parseFloat(document.getElementById("distance").value);
+            let d = parseFloat(document.getElementById("distance").value);
             const e = parseFloat(document.getElementById("fuelEconomy").value);
             const p = parseFloat(document.getElementById("gasPrice").value);
+            const people = parseFloat(document.getElementById("people").value);
+            const roundTrip = document.getElementById("roundTrip").checked;
 
+            // 入力チェック
             if (isNaN(d) || isNaN(e) || isNaN(p) || d <= 0 || e <= 0 || p <= 0) {
                 alert("すべての値を正しく入力してください。");
                 return;
             }
 
+            // 往復処理
+            if (roundTrip) d *= 2;
+
             const fuel = d / e;
             const cost = Math.round(fuel * p);
 
+            // 割り勘
+            let perPerson = "";
+            if (!isNaN(people) && people > 0) {
+                const one = Math.round(cost / people);
+                perPerson = `<br>一人あたり：<strong>${one} 円</strong>`;
+            }
+
+            // 結果表示
             document.getElementById("result").style.display = "block";
             document.getElementById("result").innerHTML =
-                `必要なガソリン量：${fuel.toFixed(2)} L<br>ガソリン代：<strong>${cost} 円</strong>`;
+                `必要なガソリン量：${fuel.toFixed(2)} L<br>` +
+                `ガソリン代：<strong>${cost} 円</strong>` +
+                perPerson;
+
+            // 入力を保存
+            localStorage.setItem("distance", document.getElementById("distance").value);
+            localStorage.setItem("fuelEconomy", document.getElementById("fuelEconomy").value);
+            localStorage.setItem("gasPrice", document.getElementById("gasPrice").value);
+            localStorage.setItem("people", document.getElementById("people").value);
+            localStorage.setItem("roundTrip", roundTrip);
         }
     </script>
 
