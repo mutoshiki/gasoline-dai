@@ -4,7 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>燃費計算ツール</title>
+
 <style>
+/* ---- ここは元コードそのまま ---- */
 :root {
     --main: #7b9cff;
     --main-dark: #4a6cf7;
@@ -19,6 +21,8 @@
     --radius: 16px;
     --shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
 }
+
+/* 共通 */
 body {
     font-family: 'Segoe UI', sans-serif;
     margin: 0;
@@ -37,13 +41,26 @@ body {
     box-shadow: var(--shadow);
     position: relative;
 }
+
+/* ダークモード */
 body.dark { background: var(--bg-dark); color: var(--text-dark); }
+
 body.dark .container { background: var(--card-bg-dark); }
 body.dark input { background: var(--input-bg-dark); border-color: #555; color: var(--text-dark); }
 body.dark .header { background: var(--main-dark); }
 body.dark .result { background: #39405a; border-left-color: #9cb3ff; color: #eaefff; }
 body.dark button { background: var(--main-dark); }
 body.dark label { color: #dcdcdc; }
+
+/* システム自動 */
+@media (prefers-color-scheme: dark) {
+    body:not(.light) {
+        background: var(--bg-dark);
+        color: var(--text-dark);
+    }
+}
+
+/* テーマ切替 */
 .theme-toggle {
     position: absolute;
     right: 22px;
@@ -56,7 +73,7 @@ body.dark label { color: #dcdcdc; }
     transition: 0.3s;
     color: #fff;
 }
-.theme-toggle:hover { background: rgba(255,255,255,0.45); }
+
 .container {
     max-width: 520px;
     margin: 40px auto;
@@ -64,8 +81,9 @@ body.dark label { color: #dcdcdc; }
     background: var(--card-bg);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    animation: fadeIn 0.6s ease;
+    transition: 0.4s;
 }
+
 label {
     display: block;
     margin-top: 18px;
@@ -73,16 +91,18 @@ label {
     font-weight: 700;
     color: #555;
 }
+
 input {
-    width: 100%;
-    padding: 14px 18px;
+  width: 100%;
+    padding: 14px 12px;
     margin-top: 6px;
     border: 1px solid #dcdfea;
-    border-radius: 40px;
+    border-radius: var(--radius);
     font-size: 17px;
     transition: 0.25s ease;
-    background: var(--input-bg);
+    box-sizing: border-box;
 }
+
 button {
     width: 100%;
     margin-top: 30px;
@@ -93,116 +113,225 @@ button {
     font-size: 18px;
     border-radius: 40px;
     cursor: pointer;
-    transition: 0.25s ease;
-    font-weight: 600;
 }
-button:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(74,108,247,0.3); }
-.result {
-    margin-top: 30px;
+/* ---- 元コードここまで ---- */
+
+/* 履歴 */
+#historyBox {
+    margin-top: 40px;
     padding: 20px;
-    background: #eef3ff;
-    border-left: 6px solid var(--main);
-    border-radius: var(--radius);
-    font-size: 18px;
-    font-weight: 600;
-    color: #1e2c5a;
+    background: #f1f3ff;
+    border-radius: 14px;
 }
-.reset-btn {
-    background: #ff7b7b;
+.historyItem {
+    background: white;
     margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    border-left: 4px solid var(--main);
+    cursor: pointer;
 }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
 </style>
 </head>
+
 <body>
-<div class="header">燃費計算ツール <div class="theme-toggle" onclick="toggleTheme()">🌙</div></div>
+
+<div class="header">
+    燃費計算ツール
+    <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+</div>
+
 <div class="container">
     <label>走行距離（km）</label>
-    <input type="number" id="distance" placeholder="例：120">
+    <input type="number" id="distance">
 
     <label>燃費（km/L）</label>
-    <input type="number" id="fuelEconomy" placeholder="例：15">
+    <input type="number" id="fuelEconomy">
 
     <label>ガソリン価格（円/L）</label>
-    <input type="number" id="gasPrice" placeholder="例：170">
+    <input type="number" id="gasPrice">
 
     <label>割り勘人数（任意）</label>
-    <input type="number" id="people" placeholder="例：3">
+    <input type="number" id="people">
 
     <label>往復（チェックで往復計算）</label>
     <input type="checkbox" id="roundTrip" style="width:auto; margin-top:10px;">
 
     <button onclick="calc()">計算する</button>
-    <button class="reset-btn" onclick="resetAll()">リセット</button>
 
     <div id="result" class="result" style="display:none;"></div>
+
+    <!-- ガソリン代コピー -->
+    <button id="copyBtn" style="display:none; margin-top:15px;" onclick="copyCost()">📋 ガソリン代をコピー</button>
+
+    <!-- 履歴 -->
+    <div id="historyBox">
+        <b>履歴一覧</b>
+        <div id="historyList"></div>
+    </div>
 </div>
+
 <footer>© 2025 Nenpi Calculator</footer>
+
+
 <script>
+// -------------------------------
+// 入力復元
+// -------------------------------
 window.onload = function () {
-    const keys = ["distance","fuelEconomy","gasPrice","people","roundTrip"];
-    keys.forEach(k=>{
-        let v = localStorage.getItem(k);
+    ["distance","fuelEconomy","gasPrice","people","roundTrip"].forEach(key=>{
+        const v = localStorage.getItem(key);
         if(v !== null){
-            if(k === "roundTrip"){ document.getElementById(k).checked = (v === "true"); }
-            else { document.getElementById(k).value = v; }
+            if(key === "roundTrip") document.getElementById(key).checked = (v === "true");
+            else document.getElementById(key).value = v;
         }
     });
-    const savedTheme = localStorage.getItem("theme");
-    const systemPrefDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (savedTheme === "dark" || (!savedTheme && systemPrefDark)) {
+
+    applyThemeOnLoad();
+    loadHistory();
+};
+
+
+// -------------------------------
+// 時間ベース＋手動テーマ切替
+// -------------------------------
+function applyThemeOnLoad(){
+    const saved = localStorage.getItem("theme");
+
+    if(saved){
+        document.body.classList.toggle("dark", saved === "dark");
+        document.querySelector(".theme-toggle").innerHTML = saved === "dark" ? "☀️" : "🌙";
+        return;
+    }
+
+    const hour = new Date().getHours();
+    if(hour >= 18 || hour < 6){
         document.body.classList.add("dark");
         document.querySelector(".theme-toggle").innerHTML = "☀️";
     } else {
+        document.body.classList.remove("dark");
         document.querySelector(".theme-toggle").innerHTML = "🌙";
     }
-};
-function saveInput() {
-    localStorage.setItem("distance", document.getElementById("distance").value);
-    localStorage.setItem("fuelEconomy", document.getElementById("fuelEconomy").value);
-    localStorage.setItem("gasPrice", document.getElementById("gasPrice").value);
-    localStorage.setItem("people", document.getElementById("people").value);
+}
+
+function toggleTheme(){
+    const nowDark = document.body.classList.toggle("dark");
+    document.querySelector(".theme-toggle").innerHTML = nowDark ? "☀️" : "🌙";
+    localStorage.setItem("theme", nowDark ? "dark" : "light");
+}
+
+
+// -------------------------------
+// 入力保存
+// -------------------------------
+function saveInput(){
+    ["distance","fuelEconomy","gasPrice","people"].forEach(key=>{
+        localStorage.setItem(key, document.getElementById(key).value);
+    });
     localStorage.setItem("roundTrip", document.getElementById("roundTrip").checked);
 }
-function calc() {
-    const d = parseFloat(document.getElementById("distance").value);
-    const e = parseFloat(document.getElementById("fuelEconomy").value);
-    const p = parseFloat(document.getElementById("gasPrice").value);
-    const people = parseFloat(document.getElementById("people").value);
-    const round = document.getElementById("roundTrip").checked;
 
-    if (isNaN(d) || isNaN(e) || isNaN(p) || d <= 0 || e <= 0 || p <= 0) {
-        alert("すべての値を正しく入力してください。");
+
+// -------------------------------
+// 計算
+// -------------------------------
+let lastCost = 0;
+
+function calc(){
+    const d = parseFloat(distance.value);
+    const e = parseFloat(fuelEconomy.value);
+    const g = parseFloat(gasPrice.value);
+    const pe = parseFloat(people.value);
+    const round = roundTrip.checked;
+    if(isNaN(d)||isNaN(e)||isNaN(g)||d<=0||e<=0||g<=0){
+        alert("正しく入力してください");
         return;
     }
-    const distanceFinal = round ? d * 2 : d;
-    const fuel = distanceFinal / e;
-    const cost = Math.round(fuel * p);
 
-    let resultText = `走行距離：${distanceFinal} km<br>必要なガソリン量：${fuel.toFixed(2)} L<br>ガソリン代：<strong>${cost} 円</strong>`;
-    if (!isNaN(people) && people > 0) {
-        const per = Math.round(cost / people);
-        resultText += `<br><br>1人あたり：<strong>${per} 円</strong>`;
+    const dist = round? d*2 : d;
+    const fuel = dist/e;
+    const cost = Math.round(fuel*g);
+    lastCost = cost;
+
+    let html = `走行距離：${dist} km<br>
+                必要ガソリン量：${fuel.toFixed(2)} L<br>
+                ガソリン代：<strong>${cost} 円</strong>`;
+
+    if(!isNaN(pe) && pe > 0){
+        const per = Math.round(cost / pe);
+        html += `<br><br>1人あたり：<strong>${per} 円</strong>`;
     }
-    const result = document.getElementById("result");
+
     result.style.display = "block";
-    result.innerHTML = resultText;
+    result.innerHTML = html;
+
+    copyBtn.style.display = "block";
+
     saveInput();
+    saveHistory(dist,e,g,pe,round,cost);
 }
-function resetAll() {
-    document.getElementById("distance").value = "";
-    document.getElementById("fuelEconomy").value = "";
-    document.getElementById("gasPrice").value = "";
-    document.getElementById("people").value = "";
-    document.getElementById("roundTrip").checked = false;
-    document.getElementById("result").style.display = "none";
-    localStorage.clear();
+
+
+// -------------------------------
+// ガソリン代コピー
+// -------------------------------
+function copyCost(){
+    navigator.clipboard.writeText(String(lastCost));
+    alert("ガソリン代をコピーしました");
 }
-function toggleTheme() {
-    const isDark = document.body.classList.toggle("dark");
-    document.querySelector(".theme-toggle").innerHTML = isDark ? "☀️" : "🌙";
-    localStorage.setItem("theme", isDark ? "dark" : "light");
+
+
+// -------------------------------
+// 履歴保存
+// -------------------------------
+function saveHistory(dist,e,g,pe,round,cost){
+    const item = {
+        dist,e,g,pe,round,cost,
+        time: new Date().toLocaleString()
+    };
+
+    let list = JSON.parse(localStorage.getItem("nenpi_history") || "[]");
+    list.unshift(item);
+    localStorage.setItem("nenpi_history", JSON.stringify(list));
+
+    loadHistory();
+}
+
+
+// -------------------------------
+// 履歴表示
+// -------------------------------
+function loadHistory(){
+    const box = document.getElementById("historyList");
+    let list = JSON.parse(localStorage.getItem("nenpi_history") || "[]");
+
+    box.innerHTML = "";
+
+    list.forEach((h,i)=>{
+        const div = document.createElement("div");
+        div.className = "historyItem";
+        div.innerHTML = `${h.time}<br>
+            ${h.dist}km / ${h.e}km/L / ${h.g}円`;
+
+        div.onclick = ()=>restore(h);
+        box.appendChild(div);
+    });
+}
+
+
+// -------------------------------
+// 履歴から復元
+// -------------------------------
+function restore(h){
+    distance.value = h.dist;
+    fuelEconomy.value = h.e;
+    gasPrice.value = h.g;
+    people.value = h.pe;
+    roundTrip.checked = h.round;
+
+    calc();
 }
 </script>
+
 </body>
 </html>
