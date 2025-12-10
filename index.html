@@ -84,14 +84,21 @@ body.dark #historyBox { background: #242733; }
 .result {
     margin-top: 25px;
     padding: 18px 20px;
-    background: #eef3ff;            /* 少し濃い背景 */
+    background: #eef3ff;
     border-left: 6px solid var(--main);
     border-radius: 14px;
-    color: #1a1a1a !important;       /* 濃い文字色 */
+    color: #1a1a1a !important;
     font-size: 16px;
     line-height: 1.6;
+    transition: 0.3s ease;
 }
-
+    
+body.dark .result {
+    background: #39405a;
+    border-left-color: #9cb3ff;
+    color: #eaefff !important;
+}
+    
 .container {
     max-width: 520px;
     margin: 40px auto;
