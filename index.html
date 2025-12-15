@@ -415,7 +415,7 @@ function loadSingleCarInputs() {
     document.getElementById('gasPrice').value = data.gasPrice || '';
     document.getElementById('people').value = data.people || '';
     document.getElementById('roundTrip').checked = data.roundTrip || false;
-    document.getElementById('extraCost').value = data.extraCost || '0'; 
+    document.getElementById('extraCost').value = data.extraCost || ''; 
 }
 
 function addCarRow(data={}) {
@@ -715,7 +715,7 @@ function resetInputs(){
         document.getElementById('distance').value = '';
         document.getElementById('fuelEconomy').value = '';
         document.getElementById('gasPrice').value = '';
-        document.getElementById('extraCost').value = '0';
+        document.getElementById('extraCost').value = '';
         document.getElementById('people').value = '';
         document.getElementById('roundTrip').checked = false;
         saveSingleCarInputs();
