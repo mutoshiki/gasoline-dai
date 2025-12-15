@@ -745,7 +745,8 @@ function calcCircle(){
     const collectedTotal = basePer * people;
     const excess = collectedTotal - warikanBase;
 
-    let circleFund = circleBase - excess;
+    let circleFund = excess - circleBase;
+
 
     let html = '';
 
@@ -762,12 +763,15 @@ function calcCircle(){
     html += `余剰金を差し引き：-${excess} 円<br><br>`;
 
    const sign = circleFund >= 0 ? '+' : '';
+const sign = circleFund >= 0 ? '+' : '';
 html += `<strong>今回の精算差額：${sign}${circleFund} 円</strong>`;
 
+if(circleFund > 0){
+    html += `<br><span style="color:green;">※ サークル会計に ${circleFund} 円が加算されます</span>`;
+} else if(circleFund < 0){
+    html += `<br><span style="color:red;">※ サークル会計から ${Math.abs(circleFund)} 円の立替が発生します</span>`;
+}
 
-    if(circleFund < 0){
-        html += `<br><span style="color:red;">※ サークル費が不足しています（立替または追加回収が必要です）</span>`;
-    }
 
     document.getElementById('circleResult').innerHTML = html;
 }
