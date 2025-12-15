@@ -749,19 +749,21 @@ function calcCircle(){
 
     let html = '';
 
-    html += `<strong>【全体で割り勘する分】</strong><br>`;
-    html += `割り勘対象（ガソリン代＋諸経費）：${warikanBase} 円<br>`;
+    html += `<strong>【参加者から集める金額】</strong><br>`;
+    html += `参加者で割り勘する金額（ガソリン代＋諸経費）：${warikanBase} 円<br>`;
     html += `1人あたり（100円単位切り上げ）：<strong>${basePer} 円</strong><br>`;
     html += `回収総額：${collectedTotal} 円<br>`;
-    html += `切り上げ余剰金：${excess} 円<br><br>`;
+    html += `切り上げによる余剰金（サークル会計へ）：${excess} 円<br><br>`;
 
-    html += `<strong>【サークル費から出す分】</strong><br>`;
+    html += `<strong>【サークル会計で処理する金額】</strong><br>`;
     html += `調整費：${adjust} 円<br>`;
     html += `レンタカー代：${rent} 円<br>`;
     html += `高速代：${highway} 円<br>`;
-    html += `余剰金充当：-${excess} 円<br><br>`;
+    html += `余剰金を差し引き：-${excess} 円<br><br>`;
 
-    html += `<strong>サークル残高：${circleFund} 円</strong>`;
+   const sign = circleFund >= 0 ? '+' : '';
+html += `<strong>今回の精算差額：${sign}${circleFund} 円</strong>`;
+
 
     if(circleFund < 0){
         html += `<br><span style="color:red;">※ サークル費が不足しています（立替または追加回収が必要です）</span>`;
