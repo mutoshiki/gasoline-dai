@@ -327,6 +327,35 @@ button.sub-btn{
     <button class="sub-btn" id="resetBtn" aria-label="入力をリセット" style="margin-top:10px;">入力をリセット</button>
 
     <div id="result" class="result" style="display:none;" role="status" aria-live="polite"></div>
+<div id="circleWrap" style="display:none; margin-top:16px;">
+    <div class="result" style="background:#fff7e6; border-left-color:var(--highlight-color);">
+        <strong>サークル用 精算（任意）</strong>
+
+        <div style="margin-top:10px;">
+            人数：
+            <input type="number" id="circlePeople" value="1" style="width:80px;">
+        </div>
+
+        <div style="margin-top:6px;">
+            調整費：
+            <input type="number" id="adjustCost" value="0"> 円
+        </div>
+        <div style="margin-top:6px;">
+            レンタカー代：
+            <input type="number" id="rentCost" value="0"> 円
+        </div>
+        <div style="margin-top:6px;">
+            高速代：
+            <input type="number" id="highwayCost" value="0"> 円
+        </div>
+
+        <button class="sub-btn" style="margin-top:10px;" onclick="calcCircle()">
+            精算を計算
+        </button>
+
+        <div id="circleResult" style="margin-top:10px;"></div>
+    </div>
+</div>
 
     <div class="copy-row" id="copyRow" style="display:none;">
         <button class="copy-btn primary" id="copyCostBtn" aria-label="ガソリン代をコピー">📋 合計費用コピー</button>
@@ -693,7 +722,55 @@ saveSingleCarInputs();
     if(copyRowEl) {
         copyRowEl.style.display = 'flex';
     }
+    const circleWrap = document.getElementById('circleWrap');
+if(circleWrap){
+    circleWrap.style.display = 'block';
 }
+}
+
+function calcCircle(){
+    const warikanBase = lastCost; 
+    const people = parseInt(document.getElementById('circlePeople').value) || 0;
+    const adjust = parseInt(document.getElementById('adjustCost').value) || 0;
+    const rent = parseInt(document.getElementById('rentCost').value) || 0;
+    const highway = parseInt(document.getElementById('highwayCost').value) || 0;
+    const circleBase = adjust + rent + highway;
+
+    if(people <= 0){
+        alert('人数を正しく入力してください');
+        return;
+    }
+
+    const basePer = Math.ceil(warikanBase / people / 100) * 100;
+    const collectedTotal = basePer * people;
+    const excess = collectedTotal - warikanBase;
+
+    let circleFund = circleBase - excess;
+
+    let html = '';
+
+    html += `<strong>【全体で割り勘する分】</strong><br>`;
+    html += `割り勘対象（ガソリン代＋諸経費）：${warikanBase} 円<br>`;
+    html += `1人あたり（100円単位切り上げ）：<strong>${basePer} 円</strong><br>`;
+    html += `回収総額：${collectedTotal} 円<br>`;
+    html += `切り上げ余剰金：${excess} 円<br><br>`;
+
+    html += `<strong>【サークル費から出す分】</strong><br>`;
+    html += `調整費：${adjust} 円<br>`;
+    html += `レンタカー代：${rent} 円<br>`;
+    html += `高速代：${highway} 円<br>`;
+    html += `余剰金充当：-${excess} 円<br><br>`;
+
+    html += `<strong>サークル残高：${circleFund} 円</strong>`;
+
+    if(circleFund < 0){
+        html += `<br><span style="color:red;">※ サークル費が不足しています（立替または追加回収が必要です）</span>`;
+    }
+
+    document.getElementById('circleResult').innerHTML = html;
+}
+
+
 
 function saveMultiCarInputs(){
     const carRows = document.querySelectorAll('#carList .car-item');
@@ -723,16 +800,28 @@ function resetInputs(){
         document.getElementById('gasPrice').value = '';
         document.getElementById('extraCost').value = '';
         document.getElementById('people').value = '';
-                saveSingleCarInputs();
+        saveSingleCarInputs();
     } else {
         document.getElementById('carList').innerHTML = '';
-        addCarRow(); 
+        addCarRow();
         document.getElementById('multiPeople').value = '';
         saveMultiCarInputs();
     }
+
     document.getElementById('result').style.display = 'none';
     document.getElementById('copyRow').style.display = 'none';
+
+    const circleWrap = document.getElementById('circleWrap');
+    const circleResult = document.getElementById('circleResult');
+    if(circleWrap){
+        circleWrap.style.display = 'none';
+    }
+    if(circleResult){
+        circleResult.innerHTML = '';
+    }
 }
+
+
 
 function copyCost(){
     navigator.clipboard.writeText(lastCost + ' 円');
@@ -835,4 +924,5 @@ function restore(data){
 </script>
 </body> 
 </html>
+
 
